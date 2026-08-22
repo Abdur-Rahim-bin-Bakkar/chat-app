@@ -20,191 +20,90 @@ export default function DocsPage() {
         
         <div className="p-8 prose prose-blue max-w-none text-gray-700">
           <p className="text-lg mb-8 leading-relaxed">
-            This document describes the API endpoints for the chat application feature. Since the provided Swagger UI was unreachable, this documentation represents the expected API interface that the application expects. The frontend has been designed to use a service layer that implements these exact endpoints.
+            A real-time 1-to-1 and group chat API (REST + WebSocket) used by this application.
           </p>
 
           <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Base URL</h2>
           <code className="bg-gray-100 text-blue-600 px-3 py-1.5 rounded-lg font-mono text-sm block w-fit mb-8">
-            /api
+            https://frontend-task-chatapp.onrender.com/api
           </code>
 
           <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Authentication</h2>
-          <p className="mb-8">Authentication is handled via a lightweight session cookie or token returned upon login.</p>
+          <p className="mb-4"><code>POST /auth/login</code> with a phone number and a name. There is no separate signup — a new phone number is registered automatically; an existing one logs in.</p>
+          <p className="mb-8">Send the returned token on every protected request: <code>Authorization: Bearer &lt;token&gt;</code>.</p>
 
-          <div className="space-y-12">
-            {/* Endpoint 1 */}
+          <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">WebSocket (Socket.io)</h2>
+          <p className="mb-4">Connect to the server's root origin: <code>https://frontend-task-chatapp.onrender.com</code> with the JWT in the handshake auth.</p>
+          <ul className="list-disc pl-5 mb-8">
+            <li><strong>message:new</strong> (server → client): a new message arrived for you.</li>
+            <li><strong>conversation:updated</strong> (server → client): a group you're in changed.</li>
+          </ul>
+
+          <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">REST Endpoints</h2>
+
+          <div className="space-y-6">
             <section>
               <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-3">
                 <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-xs tracking-wider uppercase">POST</span>
                 /auth/login
               </h3>
-              <p className="mb-4 text-gray-600">Logs in a user, or registers them if the phone number is new.</p>
-              
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Request Body</h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4 text-sm font-mono leading-relaxed">
-{`{
-  "phone": "string (required, E.164 format or simple string)",
-  "name": "string (required, display name)"
-}`}
-              </pre>
-
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Response <span className="text-green-600 font-normal normal-case ml-2">200 OK</span></h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed">
-{`{
-  "user": {
-    "id": "string",
-    "name": "string",
-    "phone": "string"
-  },
-  "token": "string"
-}`}
-              </pre>
+              <p className="text-sm text-gray-600 mb-2">Log in or register.</p>
             </section>
 
-            {/* Endpoint 2 */}
             <section>
               <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-3">
                 <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-xs tracking-wider uppercase">GET</span>
-                /users
+                /auth/me
               </h3>
-              <p className="mb-4 text-gray-600">Search for users by name or phone number to start a conversation.</p>
-              
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Query Parameters</h4>
-              <ul className="list-disc pl-5 mb-4 text-gray-600">
-                <li><code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm text-gray-800">q</code>: string (Search query for name or phone)</li>
-              </ul>
-
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Response <span className="text-green-600 font-normal normal-case ml-2">200 OK</span></h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed">
-{`{
-  "users": [
-    {
-      "id": "string",
-      "name": "string",
-      "phone": "string"
-    }
-  ]
-}`}
-              </pre>
+              <p className="text-sm text-gray-600 mb-2">Current user.</p>
             </section>
 
-            {/* Endpoint 3 */}
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-3">
+                <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-xs tracking-wider uppercase">GET</span>
+                /users/search
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">Search users by name or phone. Query: <code>?q=&lt;string&gt;</code></p>
+            </section>
+
             <section>
               <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-3">
                 <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-xs tracking-wider uppercase">GET</span>
                 /conversations
               </h3>
-              <p className="mb-4 text-gray-600">Fetch all conversations (1-on-1 and groups) for the currently authenticated user.</p>
-
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Response <span className="text-green-600 font-normal normal-case ml-2">200 OK</span></h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed">
-{`{
-  "conversations": [
-    {
-      "id": "string",
-      "name": "string (Group name, or null for 1-on-1)",
-      "isGroup": "boolean",
-      "participants": [
-        {
-          "id": "string",
-          "name": "string"
-        }
-      ],
-      "lastMessage": {
-        "id": "string",
-        "content": "string",
-        "timestamp": "string (ISO 8601)",
-        "senderId": "string"
-      },
-      "unreadCount": "integer"
-    }
-  ]
-}`}
-              </pre>
+              <p className="text-sm text-gray-600 mb-2">List my conversations.</p>
             </section>
 
-            {/* Endpoint 4 */}
             <section>
               <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-3">
                 <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-xs tracking-wider uppercase">POST</span>
                 /conversations
               </h3>
-              <p className="mb-4 text-gray-600">Start a new conversation (either 1-on-1 or group).</p>
-              
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Request Body</h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4 text-sm font-mono leading-relaxed">
-{`{
-  "participantIds": ["string"],
-  "isGroup": "boolean",
-  "name": "string (optional, required if isGroup is true)"
-}`}
-              </pre>
-
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Response <span className="text-blue-600 font-normal normal-case ml-2">201 Created</span></h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed">
-{`{
-  "id": "string",
-  "name": "string",
-  "isGroup": "boolean",
-  "participants": [
-    {
-      "id": "string",
-      "name": "string"
-    }
-  ]
-}`}
-              </pre>
+              <p className="text-sm text-gray-600 mb-2">Start a direct conversation. Body: <code>{`{ userId }`}</code></p>
             </section>
 
-            {/* Endpoint 5 */}
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-3">
+                <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-xs tracking-wider uppercase">POST</span>
+                /conversations/group
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">Create a group. Body: <code>{`{ userIds, name }`}</code></p>
+            </section>
+
             <section>
               <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-3">
                 <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-xs tracking-wider uppercase">GET</span>
                 /conversations/:id/messages
               </h3>
-              <p className="mb-4 text-gray-600">Fetch the message history for a specific conversation.</p>
-
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Response <span className="text-green-600 font-normal normal-case ml-2">200 OK</span></h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed">
-{`{
-  "messages": [
-    {
-      "id": "string",
-      "conversationId": "string",
-      "senderId": "string",
-      "content": "string",
-      "timestamp": "string (ISO 8601)"
-    }
-  ]
-}`}
-              </pre>
+              <p className="text-sm text-gray-600 mb-2">Get message history.</p>
             </section>
 
-            {/* Endpoint 6 */}
             <section>
               <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-3">
                 <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-xs tracking-wider uppercase">POST</span>
-                /conversations/:id/messages
+                /messages
               </h3>
-              <p className="mb-4 text-gray-600">Send a message to a conversation.</p>
-              
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Request Body</h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4 text-sm font-mono leading-relaxed">
-{`{
-  "content": "string (required, cannot be empty)"
-}`}
-              </pre>
-
-              <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Response <span className="text-blue-600 font-normal normal-case ml-2">201 Created</span></h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed">
-{`{
-  "id": "string",
-  "conversationId": "string",
-  "senderId": "string",
-  "content": "string",
-  "timestamp": "string (ISO 8601)"
-}`}
-              </pre>
+              <p className="text-sm text-gray-600 mb-2">Send a message. Body: <code>{`{ conversationId, text }`}</code></p>
             </section>
           </div>
         </div>

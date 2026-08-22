@@ -8,20 +8,25 @@ import ChatWindow from "@/components/ChatWindow";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ChatPage() {
-  const { currentUser, loadConversations } = useChatStore();
+  const { currentUser, initialize, isInitializing } = useChatStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    initialize();
+  }, [initialize]);
 
-  useEffect(() => {
-    if (currentUser) {
-      loadConversations();
-    }
-  }, [currentUser, loadConversations]);
-
-  if (!mounted) return null;
+  if (!mounted || isInitializing) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-gray-50/50">
+        <div className="flex items-center space-x-2 text-blue-600">
+          <div className="h-3 w-3 animate-bounce rounded-full bg-blue-600 [animation-delay:-0.3s]"></div>
+          <div className="h-3 w-3 animate-bounce rounded-full bg-blue-600 [animation-delay:-0.15s]"></div>
+          <div className="h-3 w-3 animate-bounce rounded-full bg-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-white text-gray-900 font-sans">

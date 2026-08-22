@@ -108,15 +108,15 @@ export default function ChatWindow() {
         ) : (
           <div className="flex flex-col space-y-4">
             {messages.map((msg, i) => {
-              const isMine = msg.senderId === currentUser?.id;
-              const sender = activeConversation.participants.find(p => p.id === msg.senderId);
+              const isMine = (msg.sender || msg.senderId) === currentUser?.id || (msg.sender || msg.senderId) === currentUser?._id;
+              const sender = activeConversation.participants.find(p => p.id === (msg.sender || msg.senderId) || p._id === (msg.sender || msg.senderId));
               
               // Group messages logically to show sender name only when needed
               const showSenderInfo = activeConversation.isGroup && !isMine && 
-                (i === 0 || messages[i-1].senderId !== msg.senderId);
+                (i === 0 || (messages[i-1].sender || messages[i-1].senderId) !== (msg.sender || msg.senderId));
 
               return (
-                <div key={msg.id} className={cn("flex max-w-[75%]", isMine ? "self-end" : "self-start")}>
+                <div key={msg._id || msg.id} className={cn("flex max-w-[75%]", isMine ? "self-end" : "self-start")}>
                   <div className="flex flex-col">
                     {showSenderInfo && (
                       <span className="text-[11px] font-medium text-gray-500 mb-1 ml-1">{sender?.name}</span>
@@ -129,13 +129,13 @@ export default function ChatWindow() {
                           : "bg-white border border-gray-100 text-gray-800 rounded-tl-none"
                       )}
                     >
-                      <p className="text-[15px] leading-relaxed break-words">{msg.content}</p>
+                      <p className="text-[15px] leading-relaxed break-words">{msg.text}</p>
                       
                       <span className={cn(
                         "text-[10px] mt-1.5 block opacity-70", 
                         isMine ? "text-blue-100 text-right" : "text-gray-400"
                       )}>
-                        {format(new Date(msg.timestamp), "HH:mm")}
+                        {format(new Date(msg.createdAt || Date.now()), "HH:mm")}
                       </span>
                     </div>
                   </div>

@@ -7,7 +7,7 @@ import { api, User } from "@/services/api";
 import { formatDistanceToNow } from "date-fns";
 
 export default function Sidebar() {
-  const { currentUser, conversations, activeConversation, setActiveConversation, createConversation, logout } = useChatStore();
+  const { currentUser, conversations, activeConversation, setActiveConversation, startDirectConversation, createGroup, logout } = useChatStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -21,9 +21,8 @@ export default function Sidebar() {
         setSearchResults([]);
         return;
       }
-      const { users } = await api.users.search(searchQuery);
-      // exclude self
-      setSearchResults(users.filter(u => u.id !== currentUser?.id));
+      const users = await api.users.search(searchQuery);
+      setSearchResults(users.filter((u: User) => (u.id || u._id) !== (currentUser?.id || currentUser?._id)));
     };
 
     const debounce = setTimeout(handleSearch, 300);
@@ -36,7 +35,7 @@ export default function Sidebar() {
         setSelectedUsers([...selectedUsers, user]);
       }
     } else {
-      await createConversation([currentUser!.id, user.id], false);
+      await startDirectConversation(user._id || user.id || '');
       setSearchQuery("");
       setSearchResults([]);
     }
@@ -44,9 +43,8 @@ export default function Sidebar() {
 
   const handleCreateGroup = async () => {
     if (selectedUsers.length > 0 && groupName.trim()) {
-      await createConversation(
-        [currentUser!.id, ...selectedUsers.map(u => u.id)],
-        true,
+      await createGroup(
+        selectedUsers.map(u => u._id || u.id || ''),
         groupName.trim()
       );
       setIsCreatingGroup(false);
@@ -172,8 +170,8 @@ export default function Sidebar() {
             ) : (
               // Ensure we don't mutate state during render, slice to copy, then sort
               [...conversations].sort((a, b) => {
-                const dateA = a.lastMessage ? new Date(a.lastMessage.timestamp).getTime() : 0;
-                const dateB = b.lastMessage ? new Date(b.lastMessage.timestamp).getTime() : 0;
+                const dateA = a.lastMessage ? new Date(a.lastMessage.createdAt || Date.now()).getTime() : 0;
+                const dateB = b.lastMessage ? new Date(b.lastMessage.createdAt || Date.now()).getTime() : 0;
                 return dateB - dateA;
               }).map((conv) => {
                 const otherParticipant = conv.isGroup ? null : conv.participants.find(p => p.id !== currentUser?.id);
@@ -200,15 +198,15 @@ export default function Sidebar() {
                         <p className={`truncate text-sm font-medium ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>{title}</p>
                         {conv.lastMessage && (
                           <span className="text-[10px] text-gray-500 shrink-0 ml-2">
-                            {formatDistanceToNow(new Date(conv.lastMessage.timestamp), { addSuffix: true })}
+                            {formatDistanceToNow(new Date(conv.lastMessage.createdAt || Date.now()), { addSuffix: true })}
                           </span>
                         )}
                       </div>
                       <p className={`truncate text-xs ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
-                        {conv.lastMessage ? conv.lastMessage.content : "New conversation"}
+                        {conv.lastMessage ? conv.lastMessage.text : "New conversation"}
                       </p>
                     </div>
-                    {conv.unreadCount > 0 && (
+                    {(conv.unreadCount || 0) > 0 && (
                       <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
                         {conv.unreadCount}
                       </div>

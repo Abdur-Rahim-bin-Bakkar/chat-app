@@ -34,8 +34,9 @@ This is a full-stack Next.js application containing a modern chat feature and a 
 For the chat application, I chose to use **Next.js 14 (App Router)** paired with **Zustand** for state management and **Tailwind CSS** for styling. 
 - **Next.js**: Provides an excellent developer experience, fast routing, and built-in optimization.
 - **Zustand**: Selected over React Context because it's boilerplate-free and handles frequent updates (like new messages) extremely efficiently without unnecessary re-renders.
-- **Mock API Service Layer**: Due to the provided Render API being unreachable/down during development, I built a robust in-memory mock service layer (`src/services/api.ts`). This layer exactly mirrors the API contract I designed in `api_docs.md`. It uses random timeouts to simulate network latency and even simulates real-time responses from other users. 
-- **Trade-offs**: By using an in-memory mock instead of setting up a local database (like SQLite), the data resets on page refresh. However, this perfectly fulfills the requirement of building the UI against a designed API structure while avoiding unnecessary backend overhead for a frontend task.
+- **Real API & WebSocket Integration**: The application uses the live REST API provided at `https://frontend-task-chatapp.onrender.com/api` and `socket.io-client` for seamless real-time message delivery.
+- **Authentication**: JWT is stored securely and session is persisted across page reloads using the `/auth/me` endpoint.
+- **Trade-offs**: Instead of using Redux, I chose Zustand for its minimal boilerplate and superior performance with frequent updates (like real-time chat messages).
 
 ### Design Choices (Part 2)
 For the landing page, I wanted to create a striking, modern aesthetic that feels premium.

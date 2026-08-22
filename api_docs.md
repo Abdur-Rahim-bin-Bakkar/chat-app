@@ -1,171 +1,58 @@
-# Chat Application API Documentation
+# Chat API 1.0.0 Documentation
 
-This document describes the API endpoints for the chat application feature. 
-Since the provided Swagger UI was unreachable, this documentation represents the expected API interface that the application expects. The frontend has been designed to use a service layer that implements these exact endpoints. If the real API differs, the service layer can be updated to match the real backend.
+A real-time 1-to-1 and group chat API (REST + WebSocket).
 
 ## Base URL
-`/api`
+Live deployment: `https://frontend-task-chatapp.onrender.com/api`
 
 ## Authentication
-Authentication is handled via a lightweight session cookie or token returned upon login.
+`POST /auth/login` with a phone number and a name. There is no separate signup — a new phone number is registered automatically; an existing one logs in.
+The response includes a JWT. Send the token on every protected request: `Authorization: Bearer <token>`.
 
 ---
 
-### 1. Login / Register
-Logs in a user, or registers them if the phone number is new.
-
-**Endpoint**: `POST /auth/login`
-
-**Request Body**:
-```json
-{
-  "phone": "string (required, E.164 format or simple string)",
-  "name": "string (required, display name)"
-}
+## WebSocket (Socket.io)
+Connect to the server's root origin: `https://frontend-task-chatapp.onrender.com`
+Connect with the JWT in the handshake:
+```js
+const socket = io('https://frontend-task-chatapp.onrender.com', { auth: { token } });
 ```
-
-**Response**: `200 OK`
-```json
-{
-  "user": {
-    "id": "string",
-    "name": "string",
-    "phone": "string"
-  },
-  "token": "string"
-}
-```
+### Events
+- `message:new` (server → client): a new message arrived for you.
+- `conversation:updated` (server → client): a group you're in changed (created, renamed, or members/admins changed).
+- `message:send` (client → server): `{ conversationId, text }` (optional ack callback).
 
 ---
 
-### 2. Search Users
-Search for users by name or phone number to start a conversation.
+## REST Endpoints
 
-**Endpoint**: `GET /users`
+### Auth
+- **POST /auth/login**: Log in or register.
+  - Body: `{ "phone": "string", "name": "string" }`
+- **GET /auth/me**: Get current user.
 
-**Query Parameters**:
-- `q`: string (Search query for name or phone)
+### Users
+- **GET /users/search**: Search users by name or phone.
+  - Query: `?q=<string>`
 
-**Response**: `200 OK`
-```json
-{
-  "users": [
-    {
-      "id": "string",
-      "name": "string",
-      "phone": "string"
-    }
-  ]
-}
-```
+### Conversations
+- **GET /conversations**: List my conversations.
+- **POST /conversations**: Start a direct conversation.
+  - Body: `{ "userId": "string" }`
+- **GET /conversations/{id}/messages**: Get message history.
 
----
+### Groups
+- **POST /conversations/group**: Create a group.
+  - Body: `{ "userIds": ["string"], "name": "string" }`
+- **POST /conversations/{id}/participants**: Add members to a group.
+  - Body: `{ "userIds": ["string"] }`
+- **DELETE /conversations/{id}/participants/{userId}**: Remove a member / leave a group.
+- **POST /conversations/{id}/admins**: Promote a member to admin.
+- **PATCH /conversations/{id}**: Rename a group.
 
-### 3. List Conversations
-Fetch all conversations (1-on-1 and groups) for the currently authenticated user.
+### Messages
+- **POST /messages**: Send a message.
+  - Body: `{ "conversationId": "string", "text": "string" }`
 
-**Endpoint**: `GET /conversations`
-
-**Response**: `200 OK`
-```json
-{
-  "conversations": [
-    {
-      "id": "string",
-      "name": "string (Group name, or null for 1-on-1)",
-      "isGroup": "boolean",
-      "participants": [
-        {
-          "id": "string",
-          "name": "string"
-        }
-      ],
-      "lastMessage": {
-        "id": "string",
-        "content": "string",
-        "timestamp": "string (ISO 8601)",
-        "senderId": "string"
-      },
-      "unreadCount": "integer"
-    }
-  ]
-}
-```
-
----
-
-### 4. Create Conversation
-Start a new conversation (either 1-on-1 or group).
-
-**Endpoint**: `POST /conversations`
-
-**Request Body**:
-```json
-{
-  "participantIds": ["string"],
-  "isGroup": "boolean",
-  "name": "string (optional, required if isGroup is true)"
-}
-```
-
-**Response**: `201 Created`
-```json
-{
-  "id": "string",
-  "name": "string",
-  "isGroup": "boolean",
-  "participants": [
-    {
-      "id": "string",
-      "name": "string"
-    }
-  ]
-}
-```
-
----
-
-### 5. Get Messages
-Fetch the message history for a specific conversation.
-
-**Endpoint**: `GET /conversations/:id/messages`
-
-**Response**: `200 OK`
-```json
-{
-  "messages": [
-    {
-      "id": "string",
-      "conversationId": "string",
-      "senderId": "string",
-      "content": "string",
-      "timestamp": "string (ISO 8601)"
-    }
-  ]
-}
-```
-
----
-
-### 6. Send Message
-Send a message to a conversation.
-
-**Endpoint**: `POST /conversations/:id/messages`
-
-**Request Body**:
-```json
-{
-  "content": "string (required, cannot be empty)"
-}
-```
-
-**Response**: `201 Created`
-```json
-{
-  "id": "string",
-  "conversationId": "string",
-  "senderId": "string",
-  "content": "string",
-  "timestamp": "string (ISO 8601)"
-}
-```
+### System
+- **GET /health**: Health check.
