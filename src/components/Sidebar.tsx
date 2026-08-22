@@ -31,7 +31,7 @@ export default function Sidebar() {
 
   const handleStartChat = async (user: User) => {
     if (isCreatingGroup) {
-      if (!selectedUsers.find(u => u.id === user.id)) {
+      if (!selectedUsers.find(u => (u.id || u._id) === (user.id || user._id))) {
         setSelectedUsers([...selectedUsers, user]);
       }
     } else {
@@ -92,7 +92,7 @@ export default function Sidebar() {
           {selectedUsers.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
               {selectedUsers.map(u => (
-                <span key={u.id} className="flex items-center gap-1 rounded-full bg-blue-100 px-2.py-1 text-xs text-blue-700">
+                <span key={u.id || u._id} className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">
                   {u.name}
                   <button onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))}>
                     <X className="h-3 w-3" />
@@ -138,7 +138,7 @@ export default function Sidebar() {
             ) : (
               searchResults.map((user) => (
                 <button
-                  key={user.id}
+                  key={user.id || user._id}
                   onClick={() => handleStartChat(user)}
                   className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-gray-100"
                 >

@@ -158,7 +158,7 @@ export const api = {
     },
     getMessages: async (conversationId: string): Promise<Message[]> => {
       const res = await authFetch(`/conversations/${conversationId}/messages`);
-      const data = res.data || res || [];
+      const data = res.messages || res.data || res || [];
       return Array.isArray(data) ? data.map(normalizeMessage) : [];
     },
     renameGroup: async (conversationId: string, name: string): Promise<Conversation> => {
