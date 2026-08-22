@@ -59,14 +59,12 @@ export default function LandingPage() {
               Start Chatting Free
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/docs"
               className="flex h-14 items-center justify-center rounded-full bg-white px-8 text-base font-semibold text-gray-900 ring-1 ring-gray-200 shadow-sm hover:bg-gray-50 transition-all w-full sm:w-auto"
             >
               View Documentation
-            </a>
+            </Link>
           </div>
         </div>
 
